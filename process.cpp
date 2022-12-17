@@ -222,6 +222,11 @@ void Signal::block(process process)
     convertState("blocked", process);
 }
 
+void Signal::unblock(process process)
+{
+    convertState("ready", process);
+}
+
 void convertState(QString state, process process)
 {
     QFile oldState("processFile.txt");
