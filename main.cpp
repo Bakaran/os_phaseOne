@@ -5,18 +5,40 @@ using namespace std;
 int main()
 {
     Signal sg;
-    QList<process> processes;
     int i = 0;
-    while(1)
+    QFile Input_File("Input");
+    QTextStream reader(&Input_File);
+    Input_File.open(QFile::ReadOnly | QFile::Text);
+    while(!reader.atEnd())
     {
-        cout << "loop : " << i++ << endl;
-        QTextStream s(stdin);
-        QStringList value = s.readLine().split(' ');
+        std::cout << "loop : " << i++ << std::endl;
+        process p;
+        QStringList value = reader.readLine().split(' ');
         if(value[0] == "create_process")
         {
-            processes.addLast;
-            sg.Create(vlaue, )
+            sg.Create(value, p);
+        }
+        else if (value[0] == "run_process")
+        {
+            sg.Run(value[1]);
+        }
+        else if (value[0] == "block_process")
+        {
+            sg.block_unblock(value[1],"Blocked");
+        }
+        else if (value[0] == "show_context")
+        {
+            sg.show(value[1]);
+        }
+        else if (value[0] == "unblock_process")
+        {
+            sg.block_unblock(value[1],"Ready");
+        }
+        else if (value[0] == "kill_process")
+        {
+            sg.kill(value[1]);
         }
     }
+    Input_File.close();
     return 0;
 }

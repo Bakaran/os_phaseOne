@@ -1,5 +1,17 @@
 #include "process.h"
-
+int lineNumber = 0;
+void count_Line(QString File_Name)
+{
+    QFile f(File_Name);
+    QTextStream ts(&File_Name);
+    f.open(QFile::ReadOnly | QFile::Text);
+    while (!ts.atEnd())
+    {
+        QString s = ts.readLine();
+        lineNumber++;
+    }
+    return;
+}
 process::process()
 {
     this->ID = "";
@@ -83,8 +95,8 @@ int process::getPC()
 
 void Signal::Create(QStringList info, process process)
 {
-    QFile checkID("processFile.txt");
-    checkID.open(QFile::ReadOnly | QFile::Text);
+    QFile checkID("processFile");
+    checkID.open(QFile::ReadWrite | QFile::Text);
     QTextStream Reader(&checkID);
     bool isExist = false;
     while (!Reader.atEnd()) //format: ID,File_Name,State,I_R,ac,pc,temp
@@ -102,7 +114,7 @@ void Signal::Create(QStringList info, process process)
         process.setID(info[1]);
         process.setFileName(info[2]);
         process.setState("Ready");
-        QFile insertProcess("processFile.txt");
+        QFile insertProcess("processFile");
         insertProcess.open(QFile::Append | QFile::Text);
         QTextStream writer(&insertProcess);
         writer << process.getID() << ',' << process.getFileName() << ',' << process.getState() << ',' << process.getIR() << ',' << process.getAC() << ',' << process.getPC() << ',' << process.getTemp() << '\n';
@@ -115,7 +127,7 @@ void Signal::Create(QStringList info, process process)
 void Signal::Run(QString ID)
 {
     process process;
-    QFile findProcess("processFile.txt");
+    QFile findProcess("processFile");
     QTextStream reader(&findProcess);
     findProcess.open(QFile::ReadOnly | QFile::Text);
     while (!reader.atEnd())
@@ -143,7 +155,16 @@ void Signal::Run(QString ID)
             std::cout << "Process is Blocked!" << std::endl;
         else
         {
-            process.setPC(process.getPC()+1);
+            lineNumber = 0;
+            count_Line(process.getFileName());
+            if (lineNumber == process.getPC())
+            {
+                process.setPC(1);
+            }
+            else
+            {
+                process.setPC(process.getPC()+1);
+            }
             convertState("Running", process);
             int cnt = 1;
             QFile instructionFile(process.getFileName());
@@ -188,50 +209,80 @@ void Signal::Run(QString ID)
 
 void Signal::show(QString ID)
 {
-    QFile showFile("processFile.txt");
+    QFile showFile("processFile");
     QTextStream reader(&showFile);
     showFile.open(QFile::ReadOnly | QFile::Text);
     while (!reader.atEnd())
     {
         QStringList Sl = reader.readLine().split(',');
         if (ID == Sl[0])
-            std::cout << "Process ID : " << Sl[0].toStdString() << std::endl << "Instruction Register : " << Sl[3].toStdString() << std::endl << std::endl << "Accumulator : " << Sl[4].toStdString() << "     Temp : " << Sl[6].toStdString() << std::endl << "Program Counter : " << Sl[5].toStdString() << "     State : " << Sl[2].toStdString() << std::endl;
+            std::cout << "Process ID : " << Sl[0].toStdString()
+                      << std::endl << "Instruction Register : "
+                      << Sl[3].toStdString() << std::endl << std::endl
+                      << "Accumulator : " << Sl[4].toStdString() << "     Temp : "
+                      << Sl[6].toStdString() << std::endl << "Program Counter : "
+                      << Sl[5].toStdString() << "     State : "
+                      << Sl[2].toStdString() << std::endl;
     }
 }
 
-void Signal::kill(process process)
+void Signal::kill(QString ID)
 {
-    QFile oldState("processFile.txt");
-    QTextStream reader(&oldState);
-    QFile newState("tmp.txt");
-    QTextStream Writer(&newState);
-    oldState.open(QFile::ReadOnly | QFile::Text);
-    newState.open(QFile::WriteOnly | QFile::Text);
-    while (!reader.atEnd())
+    QFile Old_State("processFile");
+    QTextStream O_S_reader(&Old_State);
+    QFile New_State("process1File");
+    QTextStream N_S_Writer(&New_State);
+    Old_State.open(QFile::ReadOnly | QFile::Text);
+    New_State.open(QFile::WriteOnly | QFile::Text);
+    while (!O_S_reader.atEnd())
     {
-        QStringList Info = reader.readLine().split(',');
-        if (Info[0] != process.getID())
-            Writer << Info[0] << ',' << Info[1] << ',' << Info[2] << ',' << Info[3] << ',' << Info[4] << ',' << Info[5] << ',' << Info[6] << endl;
+        QStringList Info = O_S_reader.readLine().split(',');
+        if (Info[0] != ID)
+        {
+            N_S_Writer << Info[0] << ',' << Info[1] << ','
+                       << Info[2] << ',' << Info[3] << ','
+                       << Info[4] << ',' << Info[5] << ','
+                       << Info[6] << '\n';
+        }
     }
-    oldState.remove();
-    newState.rename("processFile.txt");
+    Old_State.remove();
+    New_State.rename("processFile");
 }
 
-void Signal::block(process process)
+void Signal::block_unblock(QString ID,QString state)
 {
-    convertState("blocked", process);
+    QFile Old_State("processFile");
+    QTextStream O_S_reader(&Old_State);
+    QFile New_State("process1File");
+    QTextStream N_S_Writer(&New_State);
+    Old_State.open(QFile::ReadOnly | QFile::Text);
+    New_State.open(QFile::WriteOnly | QFile::Text);
+    while (!O_S_reader.atEnd())
+    {
+        QStringList Info = O_S_reader.readLine().split(',');
+        if (Info[0] != ID)
+        {
+            N_S_Writer << Info[0] << ',' << Info[1] << ','
+                       << Info[2] << ',' << Info[3] << ','
+                       << Info[4] << ',' << Info[5] << ','
+                       << Info[6] << '\n';
+        }
+        else
+        {
+            N_S_Writer <<Info[0] << ',' << Info[1] << ','
+                       << state << ',' << Info[3] << ','
+                       << Info[4] << ',' << Info[5] << ','
+                       << Info[6] << '\n';
+        }
+    }
+    Old_State.remove();
+    New_State.rename("processFile");
 }
-
-void Signal::unblock(process process)
-{
-    convertState("ready", process);
-}
-
 void convertState(QString state, process process)
 {
-    QFile oldState("processFile.txt");
+    QFile oldState("processFile");
     QTextStream reader(&oldState);
-    QFile newState("tmp.txt");
+    QFile newState("tmp");
     QTextStream Writer(&newState);
     oldState.open(QFile::ReadOnly | QFile::Text);
     newState.open(QFile::WriteOnly | QFile::Text);
@@ -239,10 +290,14 @@ void convertState(QString state, process process)
     {
         QStringList Info = reader.readLine().split(',');
         if (Info[0] == process.getID())
-            Writer << process.getID() << ',' << process.getFileName() << ',' << state << ',' << process.getIR() << ',' << process.getAC() << ',' << process.getPC() << ',' << process.getTemp() << endl;
+            Writer << process.getID() << ',' << process.getFileName() << ','
+                   << state << ',' << process.getIR() << ',' << process.getAC() << ','
+                   << process.getPC() << ',' << process.getTemp() << '\n';
         else
-            Writer << Info[0] << ',' << Info[1] << ',' << Info[2] << ',' << Info[3] << ',' << Info[4] << ',' << Info[5] << ',' << Info[6] << endl;
+            Writer << Info[0] << ',' << Info[1] << ','
+                   << Info[2] << ',' << Info[3] << ','
+                   << Info[4] << ',' << Info[5] << ',' << Info[6] << '\n';
     }
     oldState.remove();
-    newState.rename("processFile.txt");
+    newState.rename("processFile");
 }

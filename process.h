@@ -42,9 +42,8 @@ public:
     void Create(QStringList, process);
     void Run(QString);
     void show(QString);
-    void kill(process);
-    void block(process);
-    void unblock(process);
+    void kill(QString);
+    void block_unblock(QString,QString);
 };
 
 #endif // PROCESS_H
