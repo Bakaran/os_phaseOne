@@ -217,6 +217,11 @@ void Signal::kill(process process)
     newState.rename("processFile.txt");
 }
 
+void Signal::block(process process)
+{
+    convertState("blocked", process);
+}
+
 void convertState(QString state, process process)
 {
     QFile oldState("processFile.txt");
