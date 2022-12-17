@@ -199,6 +199,24 @@ void Signal::show(QString ID)
     }
 }
 
+void Signal::kill(process process)
+{
+    QFile oldState("processFile.txt");
+    QTextStream reader(&oldState);
+    QFile newState("tmp.txt");
+    QTextStream Writer(&newState);
+    oldState.open(QFile::ReadOnly | QFile::Text);
+    newState.open(QFile::WriteOnly | QFile::Text);
+    while (!reader.atEnd())
+    {
+        QStringList Info = reader.readLine().split(',');
+        if (Info[0] != process.getID())
+            Writer << Info[0] << ',' << Info[1] << ',' << Info[2] << ',' << Info[3] << ',' << Info[4] << ',' << Info[5] << ',' << Info[6] << endl;
+    }
+    oldState.remove();
+    newState.rename("processFile.txt");
+}
+
 void convertState(QString state, process process)
 {
     QFile oldState("processFile.txt");

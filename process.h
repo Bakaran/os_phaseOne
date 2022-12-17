@@ -43,8 +43,6 @@ public:
     void Run(QString);
     void show(QString);
     void kill(process);
-    void block(process);
-    void unblock(process);
 };
 
 #endif // PROCESS_H
