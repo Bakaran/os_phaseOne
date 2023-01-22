@@ -210,12 +210,15 @@ void Signal::Run(QString ID)
 void Signal::show(QString ID)
 {
     QFile showFile("processFile");
+    bool exist = false;
     QTextStream reader(&showFile);
     showFile.open(QFile::ReadOnly | QFile::Text);
     while (!reader.atEnd())
     {
         QStringList Sl = reader.readLine().split(',');
         if (ID == Sl[0])
+        {
+            exist = true;
             std::cout << "Process ID : " << Sl[0].toStdString()
                       << std::endl << "Instruction Register : "
                       << Sl[3].toStdString() << std::endl << std::endl
@@ -223,6 +226,11 @@ void Signal::show(QString ID)
                       << Sl[6].toStdString() << std::endl << "Program Counter : "
                       << Sl[5].toStdString() << "     State : "
                       << Sl[2].toStdString() << std::endl;
+        }
+    }
+    if (exist == false)
+    {
+        std::cout << "process doesn't exist" << std::endl;
     }
 }
 

@@ -4,6 +4,9 @@ using namespace std;
 
 int main()
 {
+    QFile file("processFile");
+    file.open(QFile::WriteOnly | QFile::Text);
+    file.remove();
     Signal sg;
     int i = 0;
     QFile Input_File("Input");
